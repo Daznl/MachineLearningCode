@@ -31,15 +31,27 @@ Content Provided by Unit Coordinator
 • Obstacle Width: the width of obstacle (in meter)
 
 • Obstacle Height: the height of obstacle (in meter)
+
 • Obstacle Thickness: the thickness of obstacle (in meter)
+
 • Obstacle Angle: the angle between the line connecting obstacle centers and BLEVE centers and the horizontal line
+
 • Status: the status of liquid, either subcooled or superheated
+
 • Substance Critical Pressure: the pressure required to liquefy a vapour of the substance at its critical temperature (in bar)
+
 • Substance Boiling Temperature: the temperature above which liquid of the substance turns into vapour at atmosphere pressure (in K)
+
 • Substance Critical Temperature: the temperature above which vapour of the substance cannot be liquefied, no matter how much pressure is applied (in K)
+
 • Sensor ID: the ID of the sensor ranging from 1 to 27
+
 • Sensor Position Side: the side of the wall where the sensor locates
+
 • Sensor Position x: the x coordinate of the sensor
+
 • Sensor Position y: the y coordinate of the sensor
+
 • Sensor Position z: the z coordinate of the sensor
+
 • Target Pressure: the target peak pressure to be predicted (in bar)
