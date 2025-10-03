@@ -9,16 +9,27 @@ The transportation of hazardous materials such as Liquefied Petroleum Gas (LPG) 
 Content Provided by Unit Coordinator
 
 • Tank Failure Pressure: the pressure within the tank when BLEVE happens (in bar)
+
 • Liquid Ratio: the ratio of liquid in the tank (liquid and vapour coexist)
+
 • Tank Width: the width of tank (in meter)
+
 • Tank Length: the length of tank (in meter)
+
 • Tank Height: the height of tank (in meter)
+
 • Vapour Height: the height of vapour in tank (in meter)
+
 • BLEVE Height: the distance of tank to the ground (in meter)
+
 • Vapour Temperature: the temperature of vapour (in K)
+
 • Liquid Temperature: the temperature of liquid (in K)
+
 • Obstacle Distance to BLEVE: the distance of obstacle to BLEVE (in meter)
+
 • Obstacle Width: the width of obstacle (in meter)
+
 • Obstacle Height: the height of obstacle (in meter)
 • Obstacle Thickness: the thickness of obstacle (in meter)
 • Obstacle Angle: the angle between the line connecting obstacle centers and BLEVE centers and the horizontal line
