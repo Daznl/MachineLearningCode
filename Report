@@ -1,0 +1,132 @@
+Introduction
+The movement and storage of hazardous materials are very important to our energy system, yet they pose risks, notably from BLEVEs (Boiling Liquid Expanding Vapour Explosions). BLEVEs occur when pressurised gas containers burst, releasing a massive amount of energy suddenly. Predicting BLEVEs is important for safety. Our project employs machine learning to predict the peak pressure of BLEVE explosions by analysing data from a simulated scenario. The aim of this report is to discuss the method used to create a model that can accurately predict the peak pressures of a BLEVE at different positions on an obstacle. The project involves taking in given data and an expected resulting pressure and training a model to be able to take in new data and predict the pressure that is not given. The results of the model would be compared against other models in a competition to see who can create the best model.
+
+Data Preprocessing
+Data standardisation is crucial for refining datasets before deploying machine learning models, ensuring uniformity and compatibility. The process involved fixing discrepancies, addressing missing data, outliers, and
+duplicates, laying a good foundation for predictive models.
+
+Correcting Strings
+For the ‘Status’ column the data is shown to have a variety of different spellings which would most likely refer to the same things: Subcooled 6285,Superheated 3683, Subcool 23, subcooled 20, Subcoled 14, Superheat 8,
+superheated 6, Saperheated 4. There are most likely only two types: Subcooled and Superheated and a method called ‘standardize_status_values’ was called to fix this. The function compares the features with the different
+possible naming conventions and corrects them accordingly. It then converts them to a boolean value so the learning model can handle them.
+Searching for incorrect Data
+The dataset was searched for incorrect entries or inconsistencies, such as negative values for inherently positive attributes like pressure. This can be seen in the print_column_ranges function that prints the ranges of
+each column to better observe the data distribution. However after observation, these negative values were compared to the different data scenarios and it was clear that negative values were possible, for example the
+height of the tank could be below the ground. The only feature that could be troublesome would be a negative value of distance between the obstacle and the tank, but no values were observed. 
+Handling Missing Values:
+
+There were instances of missing data across several features within our training dataset. To address this, K nearest neighbour was used to fill in these values. This approach was chosen to preserve as much data as possible, considering the potential loss of valuable information and the impact on model performance. However the model that was trained on this data did not perform as well. This may be due to the following reasons.
+
+Distortion of the Data Distribution: 
+KNN assumes that the missing values can be reasonably approximated by their nearest neighbours. This assumption might not always be true, especially if the dataset has complex patterns. This can lead to the new values distorting the distribution of the data.
+
+Increase in Noise: 
+KNN imputation introduces additional noise into the dataset. While it fills in missing values, the accuracy of these imputed values depends heavily on the choice of K (the number of neighbours) and the distance metric used. These different parameters were not experimented with due to time constraints.
+Overfitting: 
+Overfitting occurs when the model is too closely fit to the specific examples used in training, rather than to the broader patterns that generalise well to unseen data.
+Impact on Model Training and Convergence: 
+The presence of imputed values might affect the way a model learns during training. Depending on the algorithm, some models might be sensitive to the "artificial" nature of the imputed data, which could affect the convergence and ultimately the model's performance.
+
+Given the reduction in accuracy the KNN was not used and instead instances with missing values were removed entirely.
+
+Outlier Detection:
+
+Outliers were detected using the standard deviation values of the column. THis can be seen in the remove_outliers_function. This function effectively removes rows from a DataFrame that contain values in any numerical column considered outliers that were more than 3 standard deviations away from the mean of their respective columns. It's a common method for outlier removal in data preprocessing, aiming to improve the quality of data for analysis or model training.
+Duplicates:
+Duplicate entries in the dataset were identified by comparing records across all features. This can be seen on the remove_duplicates function. Removing these duplicates was crucial to prevent the overrepresentation of certain data points, which could bias the model. It was assumed that this is similar to the effect of using KNN and because of this it would be more effective to remove these values instead.
+Feature Selection and Engineering
+
+Through an analysis aimed at identifying features with significant predictive power, we removed variables with little to no variance or relevance to the target variable. We also calculated new features, such as the total volume of the tank and a measure of obstacle proximity, to capture more relationships in the data. This step was guided by the assumption that certain physical dimensions and relative positions could have a substantial impact on BLEVE outcomes and could improve model accuracy.
+Volume: 
+For each instance the volume of both the BLEVE and the Obstacle were calculated using the values of width, length and height. By calculating these values the model was able to receive additional data relationships that might have otherwise been missed. These functions are as follows: calculate_Tank_Volume and calculate_Obstace_Volume.
+
+Vector Distance: 
+For each instance the distance from the BLEVE tank to the Obstacle was calculated using the values of sensor x,y and z. This was assuming that there would be a relationship between the overall distance of the sensor from the centre of the BLEVE tank. This function is the calculate_Vector_Distance.
+This function raised some questions into the origin of where these positions were measured from. After clarification with the unit coordinator it was made clear that the origin was not the centre of the tank but instead the centre bottom left of the tank. I attempted to construct a more accurate function to create a vector distance that instead set the origin as the centre of the tank. This is because I assumed that the centre would provide a more accurate relationship between the explosion and the different sensor positions. After visual inspection inside the Unity editor, it became clear that this value would be too complicated given rotation of the tank and different height of both the tank and the obstacle. Due to this complexity, the calculation was never complete and it was decided that the original vector distance would be used. The attempted function was called: calculate_Vector_Distance_Improved.
+Both the Volumes and vector distance calculations had a significant impact on the accuracy of the model.
+Standardisation
+Standardisation is a critical preprocessing step, especially when dealing with linear regression models. The data was standardised to have a mean of zero and a standard deviation of one ensured that the input variables were on a comparable scale. This is particularly important in models like linear regression, which are sensitive to the magnitude of input values.
+By transforming the data to have a consistent scale, each feature has an equal opportunity to influence the model, thus contributing more effectively to the learning process. This not only facilitates a more stable convergence during the optimization of the model's parameters but also enhances the generalizability of the model. Moreover, standardisation helps in speeding up the convergence of gradient descent algorithms.
+This function was called scale_and_normalise_data. But the normalisation was never used.
+Polynomial Features Transformer
+In the project the polynomial feature transformation was introduced to add more complexity to the data and find relationships between different data. This technique involves creating new features by combining existing ones, such as squaring or multiplying them together. It was found to be incredibly effective for most of the models. By adding these complex combinations of features, the models were able to capture deeper patterns within the data that weren't accessible before. This approach significantly improved the model's predictive accuracy. The drawback however was a significant increase in processing as there were many added variables (total feature ~300).
+Summary
+The rationale behind these preprocessing steps was to optimise the quality of the data fed into the models and to ensure the features were in a format acceptable to the learning models. By addressing missing values, outliers, and duplicates, the aim was to create a more accurate dataset. Feature selection had the goal to capture the most relevant information for predicting BLEVE peak pressures, while data scaling was implemented to facilitate model convergence and improve performance. Together, these steps made a solid foundation for developing accurate machine learning models capable of accurately predicting BLEVE outcomes.
+Model Development
+Introduction
+
+In this project, many different machine learning models were created to predict the peak pressure generated by BLEVEs. The goal was to evaluate different models’ strengths and limitations and select the most appropriate ones based on their performance and suitability for the task. The model below are the ones that the greatest deal of time was spent on as well as the ones that held the greatest significance to the project.
+Linear Regression:
+Linear Regression was the first learning model chosen due to its simplicity, interpretability, and quick computation time. Linear Regression is beneficial for creating a baseline understanding of the relationship between input features and the target variable. However, its assumption of linearity between variables is a significant limitation for complex data like BLEVE’s.
+Selected For:
+●	Simplicity:It provides a simple, understandable baseline for model comparison. 
+●	Interpretability: Its interpretability is valuable in early stages of analysis to establish a linear relationship between the features and the target variable. 
+●	Determine Variable significance: Linear Regression helps in identifying the direction and strength of relationships between variables. this makes it easy to see how additions or removal of variables impacts the results.
+●	Good Starting Point: Simple stage to understand the layout of the submissions, and determine the scoring system of the kaggle competition and see how much improvement on model accuracy was necessary.
+Limitations Acknowledged: 
+
+●	To Simplistic:The simplistic assumption of linearity does not suit the intricate nature of the BLEVE being modelled.
+Hyperparameter Tuning
+To overcome the Linear Regression model's limitations, especially its struggle with the non-linear relationships in BLEVEs, some small hyperparameter tuning was conducted. This focused on enhancing the model's performance and assessing if changes to its settings could improve its accuracy. The next sections describe the hyperparameter tuning techniques used.
+Learning Rate Adjustment
+The learning rate, a critical hyperparameter for the gradient descent algorithm used in training our Linear Regression model, was tuned to balance the speed and stability of convergence. We experimented with various values, starting from a lower rate of 0.0001 to a higher rate of 0.01, to identify the optimal learning rate that minimises the loss function efficiently without causing divergence.
+Iteration Number:
+The number of iteration was adjusted, to give the model enough time to learn from the data without overfitting. The tests showed that beyond a certain point, adding more iterations didn't enhance the model's performance, indicating that it had learned as much as it could from the data early on. This had very little impact on computation time because of the simplicity of the model.
+Evaluation and Results
+For the evaluation and results, the initial model was used to benchmark against other submissions in the Kaggle competition. It was clear that it underperformed, indicating the need for alternative approaches. Additionally, hyperparameter tuning did little to improve the model's performance and, in some cases, led to worse results, possibly due to overfitting. However, this model served as a foundation, and used to construct efficient code and establish a format for the assignment. Due to its poor performance and limited improvement from tuning, the model was not considered for additional experimentation.
+
+Decision Tree
+Decision Trees are a non-linear model that can capture complex relationships between the input features and the target variable through a series of binary decisions. This model is similar to a flowchart where each node represents a feature, each branch represents a decision, and each leaf represents an outcome. Decision Trees are great for their ease of interpretation, as they follow human decision-making processes more closely compared to other algorithms.
+Selected For:
+●	Interpretability: One of the most significant advantages of Decision Trees is their interpretability. They provide clear visualisation of the decision-making process, making it easier to understand how predictions are made.
+●	Capability to Model Non-Linear Relationships: Unlike Linear Regression, Decision Trees can handle complex, non-linear relationships between features and the target variable. This capability makes them suitable for modelling BLEVEs, where interactions between variables may not be linear.
+Limitations Acknowledged:
+●	Overfitting: A primary limitation of Decision Trees is their tendency to overfit the training data, especially with deep trees. Overfitting results in poor generalisation to unseen data, making the model less reliable.
+●	Instability: Decision Trees can be sensitive to small variations in the data, leading to very different trees being generated. This instability can be minimised by using ensemble methods like Random Forests, which combine the predictions of multiple trees to improve accuracy and stability.
+●	Complexity with Large Trees: While Decision Trees are interpretable, this advantage diminishes as the tree grows in complexity. Large trees can become difficult to interpret and visualise, losing one of the model's primary benefits.
+Hyperparameter Tuning
+
+Feature Importance Discussion:
+
+The feature importance found from the Decision Tree model offers valuable insights into which variables most significantly impact the target variable. For example, 'Sensor Position Side' had the greatest weight, indicating it plays an important role in predicting the outcome, most likely due to its influence on how sensors detect conditions around the BLEVE. This was also the case for 'Tank Volume' and 'Sensor Distance' which were quite influential, which confirmed the importance in the physical dynamics involved in BLEVE scenarios. These insights were great in refining the model by focussing on key variables that have greater predictive power and eliminating those that don't contribute much. This was also important when creating the polynomial variables because they were very computational. Removing the less significant values decreased the time taken significantly.
+
+Random Forest Regressor: 
+Benefits of the Random Forest Regressor
+The Random Forest Regressor is well known for its accuracy and reliability, especially in complex situations where relationships in the data are not straightforward. It works by creating a collection of decision trees, each trained on different data samples and features. This diversity helps prevent overfitting, a common issue in single decision trees, ensuring that the predictions are both stable and accurate.
+Using Random Forest to Automate Hyperparameter Tuning
+In the project, the Random Forest Regressor simplified the process of hyperparameter tuning. It includes important settings like the number of trees, maximum tree depth, and the minimum samples for a split, which can be optimised to improve the model. Instead of adjusting these manually, I used automated techniques like grid search combined with cross-validation to find the best settings efficiently. This method not only saved time but also helped make the model more robust, reducing the risk of overfitting. 
+Evaluation and Results
+The Decision Tree model performed noticeably better than the Linear Regression, it still fell short of achieving competitive results in the Kaggle competition. Through a detailed examination of parameter importance and eliminating non-important features, the Decision Tree model was improved significantly. However, the real breakthrough came when integrating the Random Forest approach, which significantly boosted the accuracy. This model leveraged multiple decision trees to reduce variance and avoid the overfitting of a single Decision Tree. Because of this success, experimentation was done with various configurations of the Random Forest model, attempting to further optimise its performance. Unfortunately, these variations led to overfitting, with the model performing well on training data but poorly on unseen data. The original Random Forest model configuration proved to be the most effective, which was probably due to having the best balance between complexity and generalizability.
+Gradient Boosting Machines (GBM):
+
+Gradient Boosting Machines are advanced ensemble techniques that build models in stages to minimise the errors of previous models, enhancing predictions with each step. This involves training decision trees one at a time, where each new tree helps correct errors made by the previous trees. GBMs are effective in handling complex, non-linear relationships between features and the target variable, making them well-suited for challenging datasets like the BLEVEs.
+
+Selected For:
+
+●	High Accuracy: GBMs have the ability to deliver high accuracy in predictions, especially in scenarios involving complicated data.
+●	Handling Non-Linear Data: Unlike simpler models, GBMs excel at capturing non-linear interactions, making them ideal for datasets where the relationships between variables are not simple.
+●	Sequential Error Correction: Each successive model in a GBM setup focuses on correcting the mistakes of the previous ones, leading to a refined and improved prediction with each step.
+●	Flexibility in Modeling: GBMs can be tailored extensively through hyperparameter tuning to optimise performance, which allows them to adapt to a wide range of data 
+scenarios.
+
+Limitations Acknowledged:
+
+●	Overfitting Risks: Due to their complexity and deep learning nature, GBMs can easily overfit the training data. This makes them less generalizable to new, unseen data.
+●	Demanding Hyperparameter Tuning: Achieving the best performance with GBMs requires extensive tuning of hyperparameters, which can be time-consuming and computationally expensive.
+●	Complexity in Interpretation: As the number of sequential models increases, GBMs become more difficult to interpret compared to simpler, more transparent models.
+Hyperparameter Tuning:
+
+It was clear that hyperparameter tuning by fitting many different models and selecting the most accurate one against the test data could result in a less accurate model due to overfitting. This was tested and took a great deal of time to compute. The results were less accurate so hypertuning was only attempted once with bad results.
+Evaluation and Results
+
+GBMs showed a small improvement over the previously constructed Random Forest model. This was most likely due to their ability to dynamically focus on harder-to-predict instances and effectively capture complex, non-linear interactions within the dataset. Due to overfitting with hyperparameter tuning, little was done to modify the model. It did outperform all other models tested and was the leading model for the competition submissions. The data going into it seemed to be the most important step so this was focussed on instead.
+
+Conclusion
+
+The ability to efficiently organise and manage code is fundamental in machine learning projects, especially when experimenting with multiple models. In this project, a variety of models were tested including Linear Regression, Decision Trees, Random Forests, XGBoost, Gradient Boosting, SVM, and LightGBM. This diverse approach was made possible by structuring the code in a way that allowed easy swapping and testing of different models.This was also made easier by python's ability to simply import different libraries and with use of ChatGpt to quickly receive suggested models and construct quick functions to test them.
+
+One significant breakthrough in the project was the implementation of polynomial feature transformations, which greatly impacted the predictive accuracy of the different models. By creating polynomial features, they could capture more complex interactions between variables, leading to a substantial improvement in model performance. The highest score achieved was 0.22265, a testament to the effectiveness of enhancing feature complexity.
+
+However, the use of polynomial features introduced computational challenges, which had a huge impact on hyperparameter tuning. Due to the increased computation, some models required up to an hour to complete. This complexity led us to a shift towards optimising initial features and using polynomial transformations rather than focusing solely on hyperparameter tuning. The limitation of submitting only five entries per day also outlined the importance of making each model iteration count, prioritising input data and substantial modifications over incremental tuning.
+
+This project showed the importance of code organisation in machine learning workflows and the strategic balance between feature engineering and hyperparameter tuning. There was a solid understanding discovered in the importance of bias and variance and the impact on trained and test data. By prioritising the modification of input data through polynomial features, the impact of each submission was maximised, leading to more efficient and effective model optimization.
